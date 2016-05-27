@@ -23,49 +23,49 @@ class Capistrano::GitCopy < Capistrano::SCM
       local_path = fetch(:local_path)
       options    = ['--verbose', '--mirror']
 
-      if (depth = fetch(:git_shallow_clone))
-       options.concat(['--depth', depth, '--no-single-branch'])
+      if File.exist?("#{Dir.home}/.git-templates/hooks/post-checkout")
+        options.concat(['--template', "#{Dir.home}/.git-templates"])
       end
 
-      if File.exist?('~/.git-templates/hooks/post-checkout')
-        options.concat(['--template', '~/.git-templates'])
+      if (depth = fetch(:git_shallow_clone))
+        options.concat(['--depth', depth, '--no-single-branch'])
       end
 
       options.concat([repo_url, local_path])
 
       git *options.unshift(:clone)
-  end
+    end
 
-  def update
-    # Note: Requires git version 1.9 or greater
-    if (depth = fetch(:git_shallow_clone))
-      git :fetch, '--depth', depth, 'origin', fetch(:branch)
-    else
-      git :remote, :update
+    def update
+      # Note: Requires git version 1.9 or greater
+      if (depth = fetch(:git_shallow_clone))
+        git :fetch, '--depth', depth, 'origin', fetch(:branch)
+      else
+        git :remote, :update
+      end
+    end
+
+    def fetch_revision
+      context.capture(:git, "rev-list --max-count=1 --abbrev-commit --abbrev=12 #{fetch(:branch)}")
+    end
+
+    def local_tarfile
+      "#{fetch(:tmp_dir)}/#{fetch(:application)}-#{fetch(:current_revision).strip}.tar.gz"
+    end
+
+    def remote_tarfile
+      "#{fetch(:tmp_dir)}/#{fetch(:application)}-#{fetch(:current_revision).strip}.tar.gz"
+    end
+
+    def release
+      if (tree = fetch(:repo_tree))
+        tree       = tree.slice %r#^/?(.*?)/?$#, 1
+        components = tree.split('/').size
+        git :archive, fetch(:branch), tree, '--format', 'tar', "|gzip > #{local_tarfile}"
+      else
+        git :archive, fetch(:branch), '--format', 'tar', "|gzip > #{local_tarfile}"
+      end
     end
   end
-
-  def fetch_revision
-    context.capture(:git, "rev-list --max-count=1 --abbrev-commit --abbrev=12 #{fetch(:branch)}")
-  end
-
-  def local_tarfile
-    "#{fetch(:tmp_dir)}/#{fetch(:application)}-#{fetch(:current_revision).strip}.tar.gz"
-  end
-
-  def remote_tarfile
-    "#{fetch(:tmp_dir)}/#{fetch(:application)}-#{fetch(:current_revision).strip}.tar.gz"
-  end
-
-  def release
-    if (tree = fetch(:repo_tree))
-      tree       = tree.slice %r#^/?(.*?)/?$#, 1
-      components = tree.split('/').size
-      git :archive, fetch(:branch), tree, '--format', 'tar', "|gzip > #{local_tarfile}"
-    else
-      git :archive, fetch(:branch), '--format', 'tar', "|gzip > #{local_tarfile}"
-    end
-  end
-end
 
 end

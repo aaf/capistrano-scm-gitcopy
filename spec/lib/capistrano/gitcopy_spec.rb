@@ -33,6 +33,7 @@ module Capistrano
         context.expects(:fetch).with(:git_shallow_clone).returns(nil)
         context.expects(:fetch).with(:local_path).returns(:local_path)
         context.expects(:repo_url).returns(:url)
+        File.expects(:exist?).with("#{Dir.home}/.git-templates/hooks/post-checkout").returns(false)
         context.expects(:execute).with(:git, :clone, '--verbose', '--mirror', :url, :local_path)
 
         subject.clone
@@ -42,7 +43,7 @@ module Capistrano
         context.expects(:fetch).with(:git_shallow_clone).returns('1')
         context.expects(:fetch).with(:local_path).returns(:local_path)
         context.expects(:repo_url).returns(:url)
-
+        File.expects(:exist?).with("#{Dir.home}/.git-templates/hooks/post-checkout").returns(false)
         context.expects(:execute).with(:git, :clone, '--verbose', '--mirror', "--depth", '1', '--no-single-branch', :url, :local_path)
 
         subject.clone
@@ -52,8 +53,9 @@ module Capistrano
         context.expects(:fetch).with(:git_shallow_clone).returns(nil)
         context.expects(:fetch).with(:local_path).returns(:local_path)
         context.expects(:repo_url).returns(:url)
-        context.expects(:execute).with(:git, :clone, '--verbose', '--mirror', '--template', '~/.git-templates', :url, :local_path)
-        File.expects(:exist?).with('~/.git-templates/hooks/post-checkout').returns(true)
+        File.expects(:exist?).with("#{Dir.home}/.git-templates/hooks/post-checkout").returns(true)
+        context.expects(:execute).with(:git, :clone, '--verbose', '--mirror', '--template', "#{Dir.home}/.git-templates", :url, :local_path)
+
         subject.clone
       end
     end
