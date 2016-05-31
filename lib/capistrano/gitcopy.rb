@@ -21,10 +21,12 @@ class Capistrano::GitCopy < Capistrano::SCM
 
     def clone
       local_path = fetch(:local_path)
-      options    = ['--verbose', '--mirror']
+      options    = ['--verbose']
 
       if File.exist?("#{Dir.home}/.git-templates/hooks/post-checkout")
         options.concat(['--template', "#{Dir.home}/.git-templates"])
+      else
+        options << '--mirror'
       end
 
       if (depth = fetch(:git_shallow_clone))
