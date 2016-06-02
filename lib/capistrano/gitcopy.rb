@@ -24,7 +24,7 @@ class Capistrano::GitCopy < Capistrano::SCM
       options    = ['--verbose']
 
       if File.exist?("#{Dir.home}/.git-templates/hooks/post-checkout")
-        options.concat(['--template', "#{Dir.home}/.git-templates"])
+        options.concat(['--template', "#{Dir.home}/.git-templates", '--branch', fetch(:branch), '--single-branch'])
       else
         options << '--mirror'
       end

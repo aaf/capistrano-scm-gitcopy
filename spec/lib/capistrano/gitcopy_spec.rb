@@ -52,9 +52,10 @@ module Capistrano
       it "should run git clone with template option" do
         context.expects(:fetch).with(:git_shallow_clone).returns(nil)
         context.expects(:fetch).with(:local_path).returns(:local_path)
+        context.expects(:fetch).with(:branch).returns('master')
         context.expects(:repo_url).returns(:url)
         File.expects(:exist?).with("#{Dir.home}/.git-templates/hooks/post-checkout").returns(true)
-        context.expects(:execute).with(:git, :clone, '--verbose', '--template', "#{Dir.home}/.git-templates", :url, :local_path)
+        context.expects(:execute).with(:git, :clone, '--verbose', '--template', "#{Dir.home}/.git-templates", '--branch', 'master', '--single-branch', :url, :local_path)
 
         subject.clone
       end
